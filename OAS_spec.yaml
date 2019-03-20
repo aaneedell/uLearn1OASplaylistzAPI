@@ -1,0 +1,166 @@
+# from Udemy course Learn Swagger and OAS, Peter Gruenbaum
+swagger: '2.0'
+info: 
+  version: '0.3.0'
+  title: musicplayz API
+  description: "Welcome to our **exceedingly cool** public API. Have fun!
+  
+  This is not a real API; it is based on Peter Gruenbaum's excellent Udemy course ('Learn Swagger and the Open API Specification'). "
+# The Base URL for an API is the host+basePath
+host: api.muzicplayz.com
+basePath: /v3
+schemes: 
+  - http
+  - https
+consumes:
+  - applicaton/json
+  - application/xml
+produces:
+  - application/json
+# endpoints
+paths: 
+  /playlist:
+    # Return one or more playlists
+    get: 
+      description: "Returns a list of playlists."
+      # query parameters
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        type: integer
+        description: "Maximum number of playlists to return"
+      - name: offset
+        in: query
+        required: false
+        type: integer
+        description: "Startihg point in the list. This is an index of the first playlist to return, starting from zero."
+      - name: search
+        in: query
+        required: false
+        type: string
+        description: "Return playlists whose names contain this string."
+      responses:
+        # response codes
+        200:
+          description: Successful response
+        404: 
+          description: Oops
+    post:
+      description: "Adds a new playlist."
+      # to create a new playlist
+      parameters: 
+      - name: newPlaylist
+        in: body
+        required: true
+        schema: 
+          $ref: '#/definitions/newPlaylist'
+      responses:
+        # response codes
+        200:
+          description: New playlist successfully posted
+        404: 
+          description: Oops
+      # from Exercise 4, adding Basic auth to on operation
+      security: 
+        - basicAuth: []
+  /playlist/{playlist-id}:
+    delete: 
+      description: "Removes a specified playlist."
+      # delete a specified playlist
+      parameters: 
+      - name: playlist-id
+        in: path
+        required: true
+        type: string
+        description: "The ID of the playlist that you want to delete. "
+      responses:
+        200:
+          description: Successfully deleted the playlist
+        401:
+          description: Playlist has already been deleted.
+          schema:
+            $ref: '#/definitions/error'
+        404:
+          description: Oops
+    get:
+      description: "Returns the detailed information for a specified playlist."
+      # get request to return the playlist details
+      parameters: 
+      - name: playlist-id
+        in: path
+        required: true
+        type: string
+        description: "The ID of the playlist for which you are requesting the information. "
+      responses:
+        200:
+          description: Successfully fetched the playlist information
+          schema:
+            $ref: '#/definitions/playlistWithSongs'
+        404:
+          description: Oops
+  /playlist/{playlist-id}/image:
+    get:
+      description: "Returns a png file associated with a specified playlist."
+      # get request to return a png file for specified playlist
+      parameters: 
+      - name: playlist-id
+        in: path
+        required: true
+        type: string
+        description: "The ID of the playlist for which you are requesting the image file."
+      responses:
+        200:
+          description: Successfully fetched the png file for this playlist.
+          schema:
+            type: file
+      produces:
+      - image/png
+definitions:
+  newPlaylist:
+    description: "The properties of a playlist being added to the database."
+    properties:
+      name: 
+        type: string
+      songIds:
+        type: array
+        items:
+          type: integer
+    required: 
+      - name
+  playlistWithSongs:
+    description: "specifies the songs included in a specified playlist."
+    properties:
+      id:
+        type: integer
+      name: 
+        type: string
+      song:
+        type: array
+        items:
+          $ref: '#/definitions/song'
+  song:
+    properties:
+      id:
+        type: integer
+      title: 
+        type: string
+      artist:
+        type: string
+  error:
+    properties: 
+      errorMessage: 
+        type: string
+      logData:
+        type: object
+        properties:
+          entry:
+            type: integer
+          date:
+            type: string
+          
+# From Exercise4. basicAuth is the name we used. It could be anything, though.
+securityDefinitions:
+  basicAuth:
+    type: basic
+  
